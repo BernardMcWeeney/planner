@@ -1,11 +1,347 @@
 ---
-import Welcome from '../components/Welcome.astro';
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Dashboard - Project Manager">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-6">
+          <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <div class="flex space-x-4">
+            <a href="/projects" class="text-blue-600 hover:text-blue-800 font-medium">Projects</a>
+            <a href="/tasks" class="text-blue-600 hover:text-blue-800 font-medium">Tasks</a>
+            <a href="/ideas" class="text-blue-600 hover:text-blue-800 font-medium">Ideas</a>
+            <a href="/notes" class="text-blue-600 hover:text-blue-800 font-medium">Notes</a>
+            <a href="/settings" class="text-gray-600 hover:text-gray-800 font-medium">Settings</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Quick Actions -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="flex flex-wrap gap-3">
+          <button 
+            id="quick-idea-btn"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            + Quick Idea
+          </button>
+          <button 
+            id="new-task-btn"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            + New Task
+          </button>
+          <a href="/projects" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+            + New Project
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats Widgets -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Projects Widget -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Total Projects</p>
+              <p class="text-2xl font-semibold text-gray-900" id="total-projects">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasks Widget -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Active Tasks</p>
+              <p class="text-2xl font-semibold text-gray-900" id="active-tasks">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ideas Widget -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Ideas Captured</p>
+              <p class="text-2xl font-semibold text-gray-900" id="total-ideas">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completion Rate Widget -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Completion Rate</p>
+              <p class="text-2xl font-semibold text-gray-900" id="completion-rate">-%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity & Quick Lists -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Tasks -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Recent Tasks</h3>
+          </div>
+          <div class="p-6">
+            <div id="recent-tasks" class="space-y-3">
+              <!-- Tasks will be loaded here -->
+            </div>
+            <div class="mt-4">
+              <a href="/tasks" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all tasks →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Ideas -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Recent Ideas</h3>
+          </div>
+          <div class="p-6">
+            <div id="recent-ideas" class="space-y-3">
+              <!-- Ideas will be loaded here -->
+            </div>
+            <div class="mt-4">
+              <a href="/ideas" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all ideas →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Quick Idea Modal -->
+    <div id="quick-idea-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Idea</h3>
+        <form id="quick-idea-form">
+          <textarea
+            id="idea-content"
+            placeholder="What's your idea?"
+            class="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          ></textarea>
+          <div class="flex justify-end space-x-3 mt-4">
+            <button type="button" id="cancel-idea" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick Task Modal -->
+    <div id="quick-task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Task</h3>
+        <form id="quick-task-form">
+          <input
+            type="text"
+            id="task-title"
+            placeholder="Task title"
+            class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          />
+          <select id="task-priority" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+          <div class="flex justify-end space-x-3 mt-4">
+            <button type="button" id="cancel-task" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load dashboard data
+    async function loadDashboardData() {
+      try {
+        // Load stats
+        const statsResponse = await fetch('/api/stats');
+        const stats = await statsResponse.json();
+        
+        // Update widgets
+        document.getElementById('total-projects').textContent = stats.overview.total_projects;
+        document.getElementById('active-tasks').textContent = stats.tasks.todo + stats.tasks.in_progress;
+        document.getElementById('total-ideas').textContent = stats.overview.total_ideas;
+        document.getElementById('completion-rate').textContent = stats.overview.completion_rate + '%';
+
+        // Load recent tasks
+        const tasksResponse = await fetch('/api/tasks');
+        const tasks = await tasksResponse.json();
+        const recentTasks = tasks.slice(0, 5);
+        
+        const tasksContainer = document.getElementById('recent-tasks');
+        tasksContainer.innerHTML = recentTasks.length ? recentTasks.map(task => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p class="font-medium text-gray-900">${task.title}</p>
+              <p class="text-sm text-gray-600">${task.project_name || 'No project'}</p>
+            </div>
+            <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(task.status)}">${task.status}</span>
+          </div>
+        `).join('') : '<p class="text-gray-500 text-center">No recent tasks</p>';
+
+        // Load recent ideas
+        const ideasResponse = await fetch('/api/ideas');
+        const ideas = await ideasResponse.json();
+        const recentIdeas = ideas.slice(0, 5);
+        
+        const ideasContainer = document.getElementById('recent-ideas');
+        ideasContainer.innerHTML = recentIdeas.length ? recentIdeas.map(idea => `
+          <div class="p-3 bg-gray-50 rounded-lg">
+            <p class="text-gray-900">${idea.content.substring(0, 100)}${idea.content.length > 100 ? '...' : ''}</p>
+            <p class="text-sm text-gray-600 mt-1">${idea.project_name || 'General'}</p>
+          </div>
+        `).join('') : '<p class="text-gray-500 text-center">No recent ideas</p>';
+
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      }
+    }
+
+    function getStatusColor(status) {
+      switch (status) {
+        case 'todo': return 'bg-gray-100 text-gray-800';
+        case 'in_progress': return 'bg-blue-100 text-blue-800';
+        case 'done': return 'bg-green-100 text-green-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    }
+
+    // Modal handlers
+    const quickIdeaBtn = document.getElementById('quick-idea-btn');
+    const quickIdeaModal = document.getElementById('quick-idea-modal');
+    const quickIdeaForm = document.getElementById('quick-idea-form');
+    const cancelIdea = document.getElementById('cancel-idea');
+
+    const quickTaskBtn = document.getElementById('new-task-btn');
+    const quickTaskModal = document.getElementById('quick-task-modal');
+    const quickTaskForm = document.getElementById('quick-task-form');
+    const cancelTask = document.getElementById('cancel-task');
+
+    // Quick idea modal
+    quickIdeaBtn.addEventListener('click', () => {
+      quickIdeaModal.classList.remove('hidden');
+      document.getElementById('idea-content').focus();
+    });
+
+    cancelIdea.addEventListener('click', () => {
+      quickIdeaModal.classList.add('hidden');
+      document.getElementById('idea-content').value = '';
+    });
+
+    quickIdeaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = document.getElementById('idea-content').value.trim();
+      
+      if (content) {
+        try {
+          await fetch('/api/ideas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+          });
+          
+          quickIdeaModal.classList.add('hidden');
+          document.getElementById('idea-content').value = '';
+          loadDashboardData(); // Refresh data
+        } catch (error) {
+          alert('Error saving idea');
+        }
+      }
+    });
+
+    // Quick task modal
+    quickTaskBtn.addEventListener('click', () => {
+      quickTaskModal.classList.remove('hidden');
+      document.getElementById('task-title').focus();
+    });
+
+    cancelTask.addEventListener('click', () => {
+      quickTaskModal.classList.add('hidden');
+      document.getElementById('task-title').value = '';
+    });
+
+    quickTaskForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('task-title').value.trim();
+      const priority = document.getElementById('task-priority').value;
+      
+      if (title) {
+        try {
+          await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, priority })
+          });
+          
+          quickTaskModal.classList.add('hidden');
+          document.getElementById('task-title').value = '';
+          loadDashboardData(); // Refresh data
+        } catch (error) {
+          alert('Error creating task');
+        }
+      }
+    });
+
+    // Close modals on background click
+    quickIdeaModal.addEventListener('click', (e) => {
+      if (e.target === quickIdeaModal) {
+        quickIdeaModal.classList.add('hidden');
+      }
+    });
+
+    quickTaskModal.addEventListener('click', (e) => {
+      if (e.target === quickTaskModal) {
+        quickTaskModal.classList.add('hidden');
+      }
+    });
+
+    // Load data on page load
+    loadDashboardData();
+  </script>
 </Layout>

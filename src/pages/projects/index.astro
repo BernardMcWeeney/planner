@@ -1,0 +1,335 @@
+---
+// src/pages/projects/index.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Projects - Project Manager">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-6">
+          <div class="flex items-center space-x-4">
+            <a href="/" class="text-gray-600 hover:text-gray-800">← Dashboard</a>
+            <h1 class="text-3xl font-bold text-gray-900">Projects</h1>
+          </div>
+          <button 
+            id="new-project-btn"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            + New Project
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Projects Grid -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Projects will be loaded here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">No projects yet</h3>
+        <p class="mt-2 text-gray-600">Get started by creating your first project.</p>
+        <button 
+          id="empty-new-project-btn"
+          class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Create Project
+        </button>
+      </div>
+    </main>
+
+    <!-- New/Edit Project Modal -->
+    <div id="project-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 id="modal-title" class="text-lg font-medium text-gray-900 mb-4">New Project</h3>
+        <form id="project-form">
+          <input type="hidden" id="project-id" />
+          
+          <div class="mb-4">
+            <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+            <input
+              type="text"
+              id="project-name"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div class="mb-4">
+            <label for="project-description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea
+              id="project-description"
+              class="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label for="project-color" class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+            <div class="flex space-x-2">
+              <input type="color" id="project-color" value="#6366f1" class="w-12 h-10 border border-gray-300 rounded cursor-pointer" />
+              <input type="text" id="project-color-text" value="#6366f1" class="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="project-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select id="project-status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="completed">Completed</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button type="button" id="cancel-project" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            <button type="submit" id="save-project" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Project</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete this project? This action cannot be undone and will also delete all associated tasks.</p>
+        <div class="flex justify-end space-x-3">
+          <button type="button" id="cancel-delete" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+          <button type="button" id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let projects = [];
+    let currentProjectId = null;
+    let projectToDelete = null;
+
+    // DOM elements
+    const projectsGrid = document.getElementById('projects-grid');
+    const emptyState = document.getElementById('empty-state');
+    const projectModal = document.getElementById('project-modal');
+    const projectForm = document.getElementById('project-form');
+    const deleteModal = document.getElementById('delete-modal');
+
+    const newProjectBtn = document.getElementById('new-project-btn');
+    const emptyNewProjectBtn = document.getElementById('empty-new-project-btn');
+    const cancelProject = document.getElementById('cancel-project');
+    const saveProject = document.getElementById('save-project');
+    const cancelDelete = document.getElementById('cancel-delete');
+    const confirmDelete = document.getElementById('confirm-delete');
+
+    // Load projects
+    async function loadProjects() {
+      try {
+        const response = await fetch('/api/projects');
+        projects = await response.json();
+        renderProjects();
+      } catch (error) {
+        console.error('Error loading projects:', error);
+      }
+    }
+
+    // Render projects
+    function renderProjects() {
+      if (projects.length === 0) {
+        projectsGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      projectsGrid.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      projectsGrid.innerHTML = projects.map(project => `
+        <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-4 h-4 rounded-full" style="background-color: ${project.color}"></div>
+                <h3 class="text-lg font-semibold text-gray-900">${project.name}</h3>
+              </div>
+              <div class="flex space-x-2">
+                <button 
+                  onclick="editProject('${project.id}')"
+                  class="text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Edit"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button 
+                  onclick="confirmDeleteProject('${project.id}')"
+                  class="text-gray-400 hover:text-red-600 transition-colors"
+                  title="Delete"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <p class="text-gray-600 mb-4 h-12 overflow-hidden">${project.description || 'No description'}</p>
+            
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}">${project.status}</span>
+              <a href="/projects/${project.id}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Details →</a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getStatusColor(status) {
+      switch (status) {
+        case 'active': return 'bg-green-100 text-green-800';
+        case 'paused': return 'bg-yellow-100 text-yellow-800';
+        case 'completed': return 'bg-blue-100 text-blue-800';
+        case 'archived': return 'bg-gray-100 text-gray-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    }
+
+    // Modal handlers
+    function openProjectModal(projectId = null) {
+      currentProjectId = projectId;
+      const isEdit = !!projectId;
+      
+      document.getElementById('modal-title').textContent = isEdit ? 'Edit Project' : 'New Project';
+      document.getElementById('save-project').textContent = isEdit ? 'Update' : 'Create';
+      
+      if (isEdit) {
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+          document.getElementById('project-id').value = project.id;
+          document.getElementById('project-name').value = project.name;
+          document.getElementById('project-description').value = project.description || '';
+          document.getElementById('project-color').value = project.color;
+          document.getElementById('project-color-text').value = project.color;
+          document.getElementById('project-status').value = project.status;
+        }
+      } else {
+        projectForm.reset();
+        document.getElementById('project-color').value = '#6366f1';
+        document.getElementById('project-color-text').value = '#6366f1';
+      }
+      
+      projectModal.classList.remove('hidden');
+      document.getElementById('project-name').focus();
+    }
+
+    function closeProjectModal() {
+      projectModal.classList.add('hidden');
+      currentProjectId = null;
+    }
+
+    function editProject(projectId) {
+      openProjectModal(projectId);
+    }
+
+    function confirmDeleteProject(projectId) {
+      projectToDelete = projectId;
+      deleteModal.classList.remove('hidden');
+    }
+
+    async function deleteProject() {
+      if (!projectToDelete) return;
+      
+      try {
+        await fetch(`/api/projects?id=${projectToDelete}`, {
+          method: 'DELETE'
+        });
+        
+        deleteModal.classList.add('hidden');
+        projectToDelete = null;
+        loadProjects();
+      } catch (error) {
+        alert('Error deleting project');
+        console.error(error);
+      }
+    }
+
+    // Event listeners
+    newProjectBtn.addEventListener('click', () => openProjectModal());
+    emptyNewProjectBtn.addEventListener('click', () => openProjectModal());
+    cancelProject.addEventListener('click', closeProjectModal);
+    cancelDelete.addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+      projectToDelete = null;
+    });
+    confirmDelete.addEventListener('click', deleteProject);
+
+    // Color picker sync
+    document.getElementById('project-color').addEventListener('change', (e) => {
+      document.getElementById('project-color-text').value = e.target.value;
+    });
+
+    document.getElementById('project-color-text').addEventListener('input', (e) => {
+      const color = e.target.value;
+      if (/^#[0-9A-F]{6}$/i.test(color)) {
+        document.getElementById('project-color').value = color;
+      }
+    });
+
+    // Form submission
+    projectForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById('project-name').value.trim(),
+        description: document.getElementById('project-description').value.trim(),
+        color: document.getElementById('project-color').value,
+        status: document.getElementById('project-status').value
+      };
+
+      if (currentProjectId) {
+        formData.id = currentProjectId;
+      }
+
+      try {
+        const response = await fetch('/api/projects', {
+          method: currentProjectId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          closeProjectModal();
+          loadProjects();
+        } else {
+          alert('Error saving project');
+        }
+      } catch (error) {
+        alert('Error saving project');
+        console.error(error);
+      }
+    });
+
+    // Close modals on background click
+    projectModal.addEventListener('click', (e) => {
+      if (e.target === projectModal) closeProjectModal();
+    });
+
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) {
+        deleteModal.classList.add('hidden');
+        projectToDelete = null;
+      }
+    });
+
+    // Load projects on page load
+    loadProjects();
+  </script>
+</Layout>

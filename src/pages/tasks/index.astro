@@ -1,0 +1,435 @@
+---
+// src/pages/tasks/index.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Tasks - Project Manager">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-6">
+          <div class="flex items-center space-x-4">
+            <a href="/" class="text-gray-600 hover:text-gray-800">← Dashboard</a>
+            <h1 class="text-3xl font-bold text-gray-900">Tasks</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <select id="status-filter" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">All Status</option>
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+            <select id="project-filter" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">All Projects</option>
+            </select>
+            <button 
+              id="new-task-btn"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              + New Task
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Tasks List -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Tasks</h2>
+            <span id="task-count" class="text-sm text-gray-600">0 tasks</span>
+          </div>
+        </div>
+        
+        <div id="tasks-container" class="divide-y divide-gray-200">
+          <!-- Tasks will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          <h3 class="mt-4 text-lg font-medium text-gray-900">No tasks found</h3>
+          <p class="mt-2 text-gray-600">Create your first task to get started.</p>
+          <button 
+            id="empty-new-task-btn"
+            class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Create Task
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- New/Edit Task Modal -->
+    <div id="task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 id="modal-title" class="text-lg font-medium text-gray-900 mb-4">New Task</h3>
+        <form id="task-form">
+          <input type="hidden" id="task-id" />
+          
+          <div class="mb-4">
+            <label for="task-title" class="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+            <input
+              type="text"
+              id="task-title"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="task-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select id="task-status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+            <div>
+              <label for="task-priority" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+              <select id="task-priority" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="task-project" class="block text-sm font-medium text-gray-700 mb-2">Project</label>
+            <select id="task-project" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">No Project</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label for="task-due-date" class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+            <input
+              type="date"
+              id="task-due-date"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button type="button" id="cancel-task" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            <button type="submit" id="save-task" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Task</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
+        <div class="flex justify-end space-x-3">
+          <button type="button" id="cancel-delete" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+          <button type="button" id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let tasks = [];
+    let projects = [];
+    let filteredTasks = [];
+    let currentTaskId = null;
+    let taskToDelete = null;
+
+    // DOM elements
+    const tasksContainer = document.getElementById('tasks-container');
+    const emptyState = document.getElementById('empty-state');
+    const taskCount = document.getElementById('task-count');
+    const taskModal = document.getElementById('task-modal');
+    const taskForm = document.getElementById('task-form');
+    const deleteModal = document.getElementById('delete-modal');
+
+    const statusFilter = document.getElementById('status-filter');
+    const projectFilter = document.getElementById('project-filter');
+    const newTaskBtn = document.getElementById('new-task-btn');
+    const emptyNewTaskBtn = document.getElementById('empty-new-task-btn');
+    const cancelTask = document.getElementById('cancel-task');
+    const saveTask = document.getElementById('save-task');
+    const cancelDelete = document.getElementById('cancel-delete');
+    const confirmDelete = document.getElementById('confirm-delete');
+
+    // Load data
+    async function loadTasks() {
+      try {
+        const response = await fetch('/api/tasks');
+        tasks = await response.json();
+        applyFilters();
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    }
+
+    async function loadProjects() {
+      try {
+        const response = await fetch('/api/projects');
+        projects = await response.json();
+        
+        // Populate project selectors
+        const projectOptions = projects.map(project => 
+          `<option value="${project.id}">${project.name}</option>`
+        ).join('');
+        
+        document.getElementById('task-project').innerHTML = '<option value="">No Project</option>' + projectOptions;
+        projectFilter.innerHTML = '<option value="">All Projects</option>' + projectOptions;
+      } catch (error) {
+        console.error('Error loading projects:', error);
+      }
+    }
+
+    // Apply filters
+    function applyFilters() {
+      const statusValue = statusFilter.value;
+      const projectValue = projectFilter.value;
+
+      filteredTasks = tasks.filter(task => {
+        const matchesStatus = !statusValue || task.status === statusValue;
+        const matchesProject = !projectValue || task.project_id === projectValue;
+        return matchesStatus && matchesProject;
+      });
+
+      renderTasks();
+    }
+
+    // Render tasks
+    function renderTasks() {
+      taskCount.textContent = `${filteredTasks.length} task${filteredTasks.length !== 1 ? 's' : ''}`;
+
+      if (filteredTasks.length === 0) {
+        tasksContainer.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      tasksContainer.innerHTML = filteredTasks.map(task => `
+        <div class="p-6 hover:bg-gray-50 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center space-x-3 mb-2">
+                <button 
+                  onclick="toggleTaskStatus('${task.id}')"
+                  class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    task.status === 'done' 
+                      ? 'bg-green-500 border-green-500 text-white' 
+                      : 'border-gray-300 hover:border-green-500'
+                  }"
+                >
+                  ${task.status === 'done' ? '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : ''}
+                </button>
+                <h3 class="text-lg font-medium text-gray-900 ${task.status === 'done' ? 'line-through text-gray-500' : ''}">${task.title}</h3>
+                <span class="px-2 py-1 text-xs rounded-full ${getPriorityColor(task.priority)}">${task.priority}</span>
+                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(task.status)}">${task.status.replace('_', ' ')}</span>
+              </div>
+              
+              <div class="flex items-center space-x-4 text-sm text-gray-600">
+                ${task.project_name ? `<span class="flex items-center space-x-1">
+                  <div class="w-3 h-3 rounded-full" style="background-color: ${task.project_color || '#6366f1'}"></div>
+                  <span>${task.project_name}</span>
+                </span>` : '<span>No project</span>'}
+                ${task.due_date ? `<span>Due: ${formatDate(task.due_date)}</span>` : ''}
+                <span>Created: ${formatDate(task.created_at)}</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 ml-4">
+              <button 
+                onclick="editTask('${task.id}')"
+                class="text-gray-400 hover:text-blue-600 transition-colors"
+                title="Edit"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+              <button 
+                onclick="confirmDeleteTask('${task.id}')"
+                class="text-gray-400 hover:text-red-600 transition-colors"
+                title="Delete"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getStatusColor(status) {
+      switch (status) {
+        case 'todo': return 'bg-gray-100 text-gray-800';
+        case 'in_progress': return 'bg-blue-100 text-blue-800';
+        case 'done': return 'bg-green-100 text-green-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    }
+
+    function getPriorityColor(priority) {
+      switch (priority) {
+        case 'low': return 'bg-green-100 text-green-800';
+        case 'medium': return 'bg-yellow-100 text-yellow-800';
+        case 'high': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString();
+    }
+
+    // Task operations
+    async function toggleTaskStatus(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const newStatus = task.status === 'done' ? 'todo' : 'done';
+      
+      try {
+        await fetch('/api/tasks', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: taskId, status: newStatus })
+        });
+        
+        loadTasks();
+      } catch (error) {
+        console.error('Error updating task status:', error);
+      }
+    }
+
+    function openTaskModal(taskId = null) {
+      currentTaskId = taskId;
+      const isEdit = !!taskId;
+      
+      document.getElementById('modal-title').textContent = isEdit ? 'Edit Task' : 'New Task';
+      document.getElementById('save-task').textContent = isEdit ? 'Update' : 'Create';
+      
+      if (isEdit) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          document.getElementById('task-id').value = task.id;
+          document.getElementById('task-title').value = task.title;
+          document.getElementById('task-status').value = task.status;
+          document.getElementById('task-priority').value = task.priority;
+          document.getElementById('task-project').value = task.project_id || '';
+          document.getElementById('task-due-date').value = task.due_date || '';
+        }
+      } else {
+        taskForm.reset();
+      }
+      
+      taskModal.classList.remove('hidden');
+      document.getElementById('task-title').focus();
+    }
+
+    function closeTaskModal() {
+      taskModal.classList.add('hidden');
+      currentTaskId = null;
+    }
+
+    function editTask(taskId) {
+      openTaskModal(taskId);
+    }
+
+    function confirmDeleteTask(taskId) {
+      taskToDelete = taskId;
+      deleteModal.classList.remove('hidden');
+    }
+
+    async function deleteTask() {
+      if (!taskToDelete) return;
+      
+      try {
+        await fetch(`/api/tasks?id=${taskToDelete}`, {
+          method: 'DELETE'
+        });
+        
+        deleteModal.classList.add('hidden');
+        taskToDelete = null;
+        loadTasks();
+      } catch (error) {
+        alert('Error deleting task');
+        console.error(error);
+      }
+    }
+
+    // Event listeners
+    statusFilter.addEventListener('change', applyFilters);
+    projectFilter.addEventListener('change', applyFilters);
+    newTaskBtn.addEventListener('click', () => openTaskModal());
+    emptyNewTaskBtn.addEventListener('click', () => openTaskModal());
+    cancelTask.addEventListener('click', closeTaskModal);
+    cancelDelete.addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+      taskToDelete = null;
+    });
+    confirmDelete.addEventListener('click', deleteTask);
+
+    // Form submission
+    taskForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        title: document.getElementById('task-title').value.trim(),
+        status: document.getElementById('task-status').value,
+        priority: document.getElementById('task-priority').value,
+        project_id: document.getElementById('task-project').value || null,
+        due_date: document.getElementById('task-due-date').value || null
+      };
+
+      if (currentTaskId) {
+        formData.id = currentTaskId;
+      }
+
+      try {
+        const response = await fetch('/api/tasks', {
+          method: currentTaskId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          closeTaskModal();
+          loadTasks();
+        } else {
+          alert('Error saving task');
+        }
+      } catch (error) {
+        alert('Error saving task');
+        console.error(error);
+      }
+    });
+
+    // Close modals on background click
+    taskModal.addEventListener('click', (e) => {
+      if (e.target === taskModal) closeTaskModal();
+    });
+
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) {
+        deleteModal.classList.add('hidden');
+        taskToDelete = null;
+      }
+    });
+
+    // Load data on page load
+    Promise.all([loadTasks(), loadProjects()]);
+  </script>
+</Layout>
