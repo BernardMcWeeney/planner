@@ -1,7 +1,7 @@
 ---
 // src/layouts/Layout.astro
 export interface Props {
-	title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
@@ -10,16 +10,20 @@ import '../styles/global.css';
 
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Personal Project Management App" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>{title}</title>
-	</head>
-	<body class="bg-gray-50">
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Personal Project Management App" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{title}</title>
+
+    <!-- ← Inject Vite/Tailwind’s built CSS here -->
+    <slot name="head" />
+  </head>
+  <body class="bg-gray-50">
+    <slot />
+  </body>
 </html>
 
 <style is:global>
